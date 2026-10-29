@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1a110b">
+  <meta name="color-scheme" content="dark">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="description" content="Backgammon K.o.-Turnier für 2 bis 10 Spieler. Setzliste auslosen, Sieger antippen, Champion feiern.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="K.o.-Turnier">
+  <title>Backgammon K.o.-Turnier</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%231a110b' width='64' height='64' rx='14'/%3E%3Ccircle cx='26' cy='34' r='16' fill='%238b261d' stroke='%23d4af37'/%3E%3Ccircle cx='36' cy='28' r='16' fill='%23f4ebd9' stroke='%238d734c'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            walnut: "#1a110b",
+            felt: "#14281d",
+            ivory: "#f4ebd9",
+            mahogany: "#8b261d",
+            brass: "#d4af37"
+          },
+          fontFamily: {
+            display: ["Cinzel", "serif"],
+            sans: ["Plus Jakarta Sans", "system-ui", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :root {
+      --walnut: #1a110b;
+      --walnut-2: #2a1b12;
+      --felt: #14281d;
+      --felt-2: #1c3a2b;
+      --ivory: #f4ebd9;
+      --mahogany: #8b261d;
+      --brass: #d4af37;
+      --brass-2: #f3e2a4;
+      --muted: rgba(244, 235, 217, 0.68);
+      --line: rgba(244, 235, 217, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; overflow-x: clip; }
+    html { background: var(--walnut); }
+    body {
+      min-height: 100dvh;
+      color: var(--ivory);
+      font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+      background-color: var(--walnut);
+      background-image:
+        radial-gradient(ellipse at 15% -10%, rgba(212, 175, 55, 0.14), transparent 46%),
+        radial-gradient(ellipse at 100% 100%, rgba(20, 40, 29, 0.55), transparent 42%),
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.015) 0 1px, transparent 1px 11px),
+        linear-gradient(180deg, #2a1b12 0%, #1a110b 38%, #120c09 100%);
+      -webkit-tap-highlight-color: transparent;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.22;
+      mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.55'/></svg>");
+    }
+    button, input { font-family: inherit; color: inherit; }
+    button { cursor: pointer; user-select: none; touch-action: manipulation; }
+    :focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+    ::selection { background: var(--brass); color: var(--walnut); }
+    h1, h2, .font-display { font-family: Cinzel, serif; font-weight: 600; }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+    }
+
+    .case { position: relative; z-index: 1; width: min(480px, 100%); margin: 0 auto; min-height: 100dvh; }
+    .case-body { padding: 0 16px calc(18px + env(safe-area-inset-bottom)); }
+    @media (min-width: 840px) {
+      body { padding: 28px 16px; }
+      .case {
+        min-height: calc(100dvh - 56px);
+        border: 1px solid rgba(212, 175, 55, 0.22);
+        border-radius: 28px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 80px);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+        overflow: hidden;
+      }
+    }
+
+    .points { display: flex; gap: 3px; height: 46px; width: 100%; }
+    .points.slim { height: 22px; }
+    .points span { flex: 1 1 0; min-width: 0; }
+    .points.down span { clip-path: polygon(50% 100%, 0 0, 100% 0); }
+    .points.up span { clip-path: polygon(50% 0, 0 100%, 100% 100%); }
+    .points span.iv { background: linear-gradient(#fbf6ea, #f4ebd9); }
+    .points span.mah { background: linear-gradient(#a33328, #8b261d 55%, #5c1814); }
+
+    .logo { width: min(220px, 78%); height: auto; display: block; }
+    @media (max-height: 740px) {
+      .logo:not(.sm) { width: min(168px, 64%); }
+    }
+    .logo.sm { width: 84px; flex: none; }
+    .lockup { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .lockup h1, .setup-title {
+      margin: 0; line-height: 0.95; letter-spacing: 0.01em;
+    }
+    .lockup h1 { font-size: clamp(1.2rem, 5.4vw, 1.85rem); }
+    .setup-title { font-size: clamp(2rem, 9vw, 2.45rem); }
+    .meta-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+    .open-bar { overflow-wrap: anywhere; }
+    .eyebrow {
+      margin: 0;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--brass);
+    }
+    .lede { color: var(--muted); line-height: 1.45; }
+    .leather {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 28%),
+        linear-gradient(165deg, #3c281b, #2a1b12 58%, #1c120e);
+      border: 1px solid rgba(212, 175, 55, 0.28);
+      border-radius: 22px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+    .felt {
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.06), transparent 55%),
+        linear-gradient(180deg, var(--felt-2), var(--felt) 42%, #0e1c14);
+      border: 1px solid rgba(212, 175, 55, 0.28);
+      border-radius: 22px;
+      box-shadow: inset 0 0 0 4px rgba(74, 42, 18, 0.45), inset 0 0 40px rgba(0, 0, 0, 0.28);
+      overflow: hidden;
+    }
+    .felt-pad { padding: 4px 12px 8px; }
+
+    .roster { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+    .roster li, .plate { display: flex; align-items: center; gap: 8px; }
+    .seed-no {
+      width: 1.7rem; flex: none; text-align: center;
+      font-family: Cinzel, serif; color: var(--brass); font-size: 0.95rem;
+    }
+    .name-input {
+      flex: 1; min-width: 0; height: 56px; border-radius: 14px;
+      border: 1px solid var(--line); background: rgba(0, 0, 0, 0.38);
+      color: var(--ivory); padding: 0 14px; font-size: 16px; font-weight: 600;
+    }
+    .name-input::placeholder { color: rgba(244, 235, 217, 0.38); font-weight: 500; }
+    .name-input.is-dup { border-color: #e7b2a8; background: rgba(139, 38, 29, 0.28); }
+    .remove-btn, .icon-btn {
+      width: 44px; height: 44px; flex: none; border-radius: 12px;
+      border: 1px solid rgba(139, 38, 29, 0.65);
+      background: rgba(139, 38, 29, 0.28); color: var(--ivory); font-size: 1.35rem; line-height: 1;
+    }
+    .plate {
+      min-height: 56px; border-radius: 14px; padding: 0 12px;
+      background: rgba(0, 0, 0, 0.28); border: 1px solid rgba(212, 175, 55, 0.28);
+      animation: slot 0.18s ease;
+    }
+    .plate .who { font-weight: 700; font-size: 1.05rem; }
+    @keyframes slot {
+      from { transform: translateY(-8px); opacity: 0.35; }
+      to { transform: none; opacity: 1; }
+    }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      min-height: 40px; padding: 0 14px; border-radius: 999px;
+      border: 1px solid var(--line); background: rgba(0, 0, 0, 0.22);
+      color: var(--ivory); font-weight: 600; font-size: 0.92rem;
+    }
+    .chip.on { background: linear-gradient(180deg, #f3e2a4, var(--brass)); color: var(--walnut); border-color: transparent; }
+
+    .btn-brass, .btn-ghost, .btn-danger {
+      width: 100%; min-height: 56px; border-radius: 16px; font-size: 1.02rem; font-weight: 700;
+      padding: 12px 16px; overflow-wrap: anywhere;
+    }
+    .btn-brass {
+      border: 0;
+      background: linear-gradient(180deg, #f6e4ad, #d4af37 46%, #a6842a);
+      color: var(--walnut);
+      box-shadow: 0 10px 22px rgba(212, 175, 55, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    }
+    .btn-brass.is-muted { filter: saturate(0.7); opacity: 0.72; }
+    .btn-ghost { border: 1px solid rgba(244, 235, 217, 0.28); background: rgba(0, 0, 0, 0.22); color: var(--ivory); }
+    .btn-danger {
+      border: 0; color: #fff8f4;
+      background: linear-gradient(180deg, #b34336, #8b261d 55%, #641812);
+    }
+    .btn-brass:active, .btn-ghost:active, .btn-danger:active, .slot:active, .chip:active { transform: translateY(1px) scale(0.99); }
+    .linkish {
+      background: none; border: 0; color: var(--brass); font-weight: 700;
+      min-height: 44px; padding: 8px 4px; text-decoration: underline; text-underline-offset: 3px;
+    }
+    .linkish.danger { color: #f0c2b8; }
+    .action-dock {
+      padding: 8px 0 calc(12px + env(safe-area-inset-bottom));
+      background: linear-gradient(180deg, rgba(26, 17, 11, 0), #1a110b 36%);
+    }
+
+    .checker {
+      position: relative; display: inline-block; width: 34px; height: 34px; border-radius: 50%; flex: none;
+      box-shadow: inset 0 2px 3px rgba(255, 255, 255, 0.5), inset 0 -4px 6px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.45);
+    }
+    .checker::before {
+      content: ""; position: absolute; inset: 22%; border-radius: 50%;
+      border: 1.5px solid rgba(255, 255, 255, 0.38); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+    }
+    .checker::after {
+      content: ""; position: absolute; left: 18%; top: 14%; width: 40%; height: 26%; border-radius: 50%;
+      background: rgba(255, 255, 255, 0.38); transform: rotate(-18deg);
+    }
+    .checker.ivory { background: radial-gradient(circle at 35% 30%, #fffdf8 0%, #f4ebd9 42%, #d9c7a4 74%, #9a8462 100%); }
+    .checker.red { background: radial-gradient(circle at 35% 30%, #c75a4e 0%, #8b261d 50%, #3a0d0b 100%); }
+    .checker.red::before { border-color: rgba(243, 214, 150, 0.5); }
+    .checker.ghost { background: transparent; box-shadow: none; border: 1.5px dashed rgba(244, 235, 217, 0.4); }
+    .checker.ghost::before, .checker.ghost::after { display: none; }
+    .checker.sm { width: 22px; height: 22px; }
+    .checker.lg { width: 48px; height: 48px; }
+    .checker.xl { width: 86px; height: 86px; }
+
+    .bar { height: 8px; border-radius: 999px; background: rgba(0, 0, 0, 0.35); overflow: hidden; border: 1px solid rgba(212, 175, 55, 0.25); }
+    .bar > span { display: block; height: 100%; background: linear-gradient(90deg, #a6842a, var(--brass-2)); border-radius: inherit; }
+    .open-bar {
+      width: 100%; min-height: 52px; border-radius: 16px; text-align: left; padding: 10px 14px;
+      border: 1px solid rgba(212, 175, 55, 0.55); background: rgba(212, 175, 55, 0.12);
+      color: var(--ivory); font-weight: 700;
+    }
+    .round-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 16px 2px 8px; }
+    .round-head h2 { margin: 0; font-size: 1.35rem; letter-spacing: 0.03em; }
+    .round-head span, .muted, .hint { color: var(--muted); }
+    .bye-line { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 10px; }
+    .bye-label {
+      font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 700; color: var(--brass);
+    }
+    .bye-player {
+      display: inline-flex; align-items: center; gap: 6px; min-height: 32px;
+      padding: 3px 10px 3px 4px; border-radius: 999px; background: rgba(0, 0, 0, 0.28);
+    }
+
+    .match, .done {
+      position: relative; overflow: hidden; border-radius: 18px; margin-bottom: 10px;
+      background: linear-gradient(180deg, rgba(42, 27, 18, 0.94), rgba(18, 12, 9, 0.94));
+      border: 1px solid rgba(244, 235, 217, 0.08);
+      scroll-margin: 84px;
+    }
+    .match { padding: 22px 10px 10px; }
+    .match::before, .done::before {
+      content: ""; position: absolute; left: 0; right: 0; top: 0; height: 16px; pointer-events: none; opacity: 0.8;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='16' viewBox='0 0 28 16'><polygon points='7,16 0,0 14,0' fill='%23f4ebd9'/><polygon points='21,16 14,0 28,0' fill='%238b261d'/></svg>");
+      background-size: 28px 16px;
+    }
+    .match.is-playable {
+      border-color: rgba(212, 175, 55, 0.62);
+      animation: glow 2.8s ease-in-out infinite;
+    }
+    .match.is-wait { opacity: 0.92; }
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.28), 0 12px 28px rgba(0, 0, 0, 0.28); }
+      50% { box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.85), 0 14px 32px rgba(212, 175, 55, 0.12); }
+    }
+    .match-kicker, .done-kicker {
+      display: flex; justify-content: space-between; align-items: center; gap: 8px;
+      margin: 0 4px 8px; font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 700;
+    }
+    .flag {
+      background: var(--brass); color: var(--walnut); border-radius: 999px; padding: 3px 8px; letter-spacing: 0.14em; font-size: 0.68rem;
+    }
+    .slot {
+      width: 100%; min-height: 68px; display: flex; align-items: center; gap: 12px;
+      padding: 8px 12px; border-radius: 14px; border: 1px solid transparent;
+      background: rgba(0, 0, 0, 0.28); text-align: left;
+    }
+    button.slot:hover, button.slot:focus-visible { border-color: rgba(212, 175, 55, 0.7); }
+    .slot.wait { border-style: dashed; border-color: rgba(244, 235, 217, 0.2); }
+    .slot .pname, .pick .pname { font-size: 1.15rem; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+    .slot .seed, .pick .seed { margin-left: auto; color: var(--brass); font-family: Cinzel, serif; font-size: 0.85rem; }
+    .vs { display: flex; align-items: center; gap: 8px; margin: 6px 8px; color: var(--brass); font-family: Cinzel, serif; letter-spacing: 0.18em; font-size: 0.72rem; }
+    .vs::before, .vs::after { content: ""; height: 1px; flex: 1; background: rgba(212, 175, 55, 0.35); }
+    .wait-kicker { display: block; font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+
+    .done { padding: 18px 12px 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .done-main { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+    .done-meta { flex: none; }
+    .done-copy { min-width: 0; }
+    .done-kicker { margin: 0 0 2px; justify-content: flex-start; }
+    .done-line { margin: 0; line-height: 1.25; }
+    .done-line span { color: var(--muted); font-weight: 500; }
+    .done-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    .score { font-variant-numeric: tabular-nums; font-weight: 700; letter-spacing: 0.04em; }
+    .tag {
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--walnut); background: var(--brass-2); border-radius: 999px; padding: 2px 6px;
+    }
+
+    .dice-row { display: flex; justify-content: center; gap: 10px; margin-bottom: 8px; }
+    .die {
+      width: 48px; height: 48px; border-radius: 10px; padding: 7px;
+      display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr);
+      background: radial-gradient(circle at 30% 25%, #fffdf8, #f4ebd9 62%, #d9c7a4);
+      box-shadow: inset 0 1px 0 #fff, 0 8px 16px rgba(0, 0, 0, 0.35);
+    }
+    .die i { width: 7px; height: 7px; border-radius: 50%; align-self: center; justify-self: center; background: transparent; }
+    .die i.on { background: #1a110b; }
+
+    .overlay { position: fixed; inset: 0; z-index: 40; display: flex; align-items: flex-end; justify-content: center; }
+    .backdrop { position: absolute; inset: 0; border: 0; background: rgba(8, 5, 3, 0.64); padding: 0; }
+    .sheet {
+      position: relative; z-index: 1; width: min(480px, 100%);
+      max-height: min(88dvh, 760px); overflow: auto;
+      padding: 8px 16px calc(16px + env(safe-area-inset-bottom));
+      border-radius: 24px 24px 0 0;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 40px),
+        linear-gradient(180deg, #3a2618, #24170f 40%, #1a110b);
+      border: 1px solid rgba(212, 175, 55, 0.32);
+      border-bottom: 0;
+      box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.45);
+      animation: sheet-in 0.28s ease;
+    }
+    @keyframes sheet-in { from { transform: translateY(16px); opacity: 0.4; } to { transform: none; opacity: 1; } }
+    .grabber { width: 46px; height: 5px; border-radius: 999px; background: rgba(244, 235, 217, 0.35); margin: 6px auto 12px; }
+    .pick {
+      width: 100%; min-height: 64px; display: flex; align-items: center; gap: 12px;
+      padding: 8px 12px; border-radius: 14px; text-align: left;
+      border: 1px solid var(--line); background: rgba(0, 0, 0, 0.28);
+    }
+    .pick.on { border-color: var(--brass); background: rgba(212, 175, 55, 0.14); box-shadow: inset 0 0 0 1px rgba(212, 175, 55, 0.4); }
+    .score-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .score-side { background: rgba(0, 0, 0, 0.28); border-radius: 14px; padding: 10px; border: 1px solid transparent; }
+    .score-side.lead { border-color: rgba(212, 175, 55, 0.55); }
+    .score-side p { margin: 0 0 8px; font-weight: 700; overflow-wrap: anywhere; }
+    .stepper { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .stepper strong { font-size: 1.6rem; font-variant-numeric: tabular-nums; font-family: Cinzel, serif; }
+    .stepper button {
+      width: 44px; height: 44px; border-radius: 12px; border: 1px solid rgba(212, 175, 55, 0.4);
+      background: rgba(212, 175, 55, 0.12); color: var(--ivory); font-size: 1.4rem;
+    }
+    .stepper button:disabled { opacity: 0.35; }
+    .sheet-hint { min-height: 1.2em; color: #f0c2b8; font-size: 0.85rem; }
+
+    .ceremony { text-align: center; padding-bottom: 12px; }
+    .stack { position: relative; width: 132px; height: 108px; margin: 8px auto 4px; }
+    .stack .back { position: absolute; right: 0; bottom: 0; }
+    .stack .front { position: absolute; left: 4px; top: 0; }
+    .champ-name {
+      font-size: clamp(2.3rem, 9vw, 3.5rem); line-height: 1.02; margin: 8px 0;
+      text-wrap: balance; overflow-wrap: anywhere;
+    }
+    .cube {
+      width: 92px; height: 92px; margin: 12px auto; border: 0; border-radius: 16px; position: relative;
+      background: linear-gradient(145deg, #f8e7b0, #d4af37 46%, #8c6a1e);
+      color: var(--walnut); font-family: Cinzel, serif; font-size: 2rem; font-weight: 700;
+      box-shadow: 10px 12px 0 #5c3e12, 0 18px 30px rgba(0, 0, 0, 0.35);
+    }
+    .cube span { position: relative; z-index: 1; }
+    .path { color: var(--muted); margin: 0 auto; max-width: 28rem; line-height: 1.45; }
+
+    #toast {
+      position: fixed; left: 50%; top: calc(12px + env(safe-area-inset-top)); transform: translate(-50%, -12px);
+      z-index: 60; max-width: min(420px, calc(100% - 24px));
+      background: #f4ebd9; color: #1a110b; font-weight: 700; text-align: center;
+      padding: 12px 16px; border-radius: 999px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      opacity: 0; pointer-events: none; transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    #toast.show { opacity: 1; transform: translate(-50%, 0); }
+    body.sheet-open { overflow: hidden; }
+    .view-in { animation: rise 0.35s ease; min-height: 100dvh; display: flex; flex-direction: column; }
+    .view-in .case-body { flex: 1; display: flex; flex-direction: column; }
+    .action-dock { margin-top: auto; }
+    @media (min-width: 840px) {
+      .view-in { min-height: calc(100dvh - 56px); }
+    }
+    @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="toast" role="status"></div>
+  <div id="live" class="sr-only" aria-live="polite"></div>
+  <noscript><p style="padding:24px">Diese Turnier-App braucht JavaScript.</p></noscript>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script>
+    const STORAGE_KEY = "bg-ko-tournament-v1";
+    const EXAMPLES = ["Lena", "Omar", "Sofia", "Mats", "Noor", "Jonas", "Aylin", "Henrik", "Mira", "Paul"];
+    const LENGTHS = [0, 1, 3, 5, 7, 9, 11];
+    const DIE_PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+
+    const BG = (() => {
+      function uid(prefix) {
+        return prefix + Math.random().toString(36).slice(2, 9);
+      }
+      function nextPow2(n) {
+        let p = 1;
+        while (p < n) p *= 2;
+        return p;
+      }
+      function seedPositions(size) {
+        let slots = [1, 2];
+        while (slots.length < size) {
+          const sum = slots.length * 2 + 1;
+          const next = [];
+          for (const seed of slots) next.push(seed, sum - seed);
+          slots = next;
+        }
+        return slots;
+      }
+      function labelRounds(rounds) {
+        const names = { 1: "Finale", 2: "Halbfinale", 4: "Viertelfinale", 8: "Achtelfinale" };
+        const openingBye = rounds[0].matches.some((m) => m.isBye);
+        rounds.forEach((round, idx) => {
+          round.name = idx === 0 && openingBye
+            ? "Vorrunde"
+            : (names[round.matches.length] || `Runde ${idx + 1}`);
+        });
+      }
+      function buildTournament(names, matchLength) {
+        const players = names.map((name, i) => ({ id: uid("p"), name, seed: i + 1 }));
+        const size = nextPow2(players.length);
+        const slots = seedPositions(size).map((seed) => (seed <= players.length ? players[seed - 1].id : null));
+        const first = [];
+        for (let i = 0; i < slots.length; i += 2) {
+          const p1 = slots[i];
+          const p2 = slots[i + 1];
+          const isBye = p1 == null || p2 == null;
+          first.push({
+            id: uid("m"),
+            p1,
+            p2,
+            winner: isBye ? (p1 || p2) : null,
+            isBye,
+            score: null,
+            kind: null
+          });
+        }
+        const rounds = [{ name: "", matches: first }];
+        while (rounds[rounds.length - 1].matches.length >= 2) {
+          const prev = rounds[rounds.length - 1].matches;
+          const matches = [];
+          for (let i = 0; i < prev.length; i += 2) {
+            matches.push({
+              id: uid("m"),
+              p1: prev[i].winner,
+              p2: prev[i + 1].winner,
+              winner: null,
+              isBye: false,
+              score: null,
+              kind: null
+            });
+          }
+          rounds.push({ name: "", matches });
+        }
+        labelRounds(rounds);
+        return { players, matchLength, rounds, createdAt: Date.now() };
+      }
+      function locate(t, id) {
+        for (let ri = 0; ri < t.rounds.length; ri++) {
+          const mi = t.rounds[ri].matches.findIndex((m) => m.id === id);
+          if (mi !== -1) return { ri, mi, match: t.rounds[ri].matches[mi] };
+        }
+        return null;
+      }
+      function findMatch(t, id) {
+        return locate(t, id)?.match || null;
+      }
+      function isPlayable(m) {
+        return Boolean(m && !m.isBye && m.p1 && m.p2 && !m.winner);
+      }
+      function realMatches(t) {
+        const list = [];
+        t.rounds.forEach((r) => r.matches.forEach((m) => { if (!m.isBye) list.push(m); }));
+        return list;
+      }
+      function firstPlayable(t) {
+        for (const m of realMatches(t)) if (isPlayable(m)) return m;
+        return null;
+      }
+      function championOf(t) {
+        if (!t?.rounds?.length) return null;
+        return t.rounds[t.rounds.length - 1].matches[0]?.winner || null;
+      }
+      function winPath(t, playerId) {
+        const names = [];
+        for (const round of t.rounds) {
+          for (const m of round.matches) {
+            if (m.isBye || m.winner !== playerId) continue;
+            const loserId = m.p1 === playerId ? m.p2 : m.p1;
+            const loser = t.players.find((p) => p.id === loserId);
+            if (loser) names.push(loser.name);
+          }
+        }
+        return names;
+      }
+      function retract(t, match) {
+        if (!match || match.isBye) return;
+        const loc = locate(t, match.id);
+        if (match.winner && loc && loc.ri < t.rounds.length - 1) {
+          const next = t.rounds[loc.ri + 1].matches[Math.floor(loc.mi / 2)];
+          const slot = loc.mi % 2 === 0 ? "p1" : "p2";
+          if (next.winner) retract(t, next);
+          if (next[slot] === match.winner) next[slot] = null;
+        }
+        match.winner = null;
+        match.score = null;
+        match.kind = null;
+      }
+      function feed(t, match) {
+        if (!match.winner) return;
+        const loc = locate(t, match.id);
+        if (!loc || loc.ri >= t.rounds.length - 1) return;
+        const next = t.rounds[loc.ri + 1].matches[Math.floor(loc.mi / 2)];
+        const slot = loc.mi % 2 === 0 ? "p1" : "p2";
+        if (next[slot] === match.winner) return;
+        if (next.winner) retract(t, next);
+        next[slot] = match.winner;
+      }
+      function setWinner(t, matchId, winnerId, score, kind) {
+        const loc = locate(t, matchId);
+        if (!loc) return false;
+        const match = loc.match;
+        if (match.isBye || !match.p1 || !match.p2) return false;
+        if (winnerId !== match.p1 && winnerId !== match.p2) return false;
+        if (match.winner === winnerId) {
+          match.score = score;
+          match.kind = kind || null;
+          return true;
+        }
+        if (match.winner) retract(t, match);
+        match.winner = winnerId;
+        match.score = score;
+        match.kind = kind || null;
+        feed(t, match);
+        return true;
+      }
+      return {
+        nextPow2, seedPositions, buildTournament, locate, findMatch, isPlayable,
+        realMatches, firstPlayable, championOf, winPath, retract, setWinner
+      };
+    })();
+
+    const state = {
+      names: ["", "", "", "", ""],
+      matchLength: 5,
+      tournament: null,
+      showCeremony: false,
+      sheet: null,
+      busy: false,
+      drawTick: 0,
+      jumpCursor: 0
+    };
+    let focusSheet = false;
+    let toastTimer = 0;
+
+    function esc(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (ch) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[ch]));
+    }
+    function normalize(name) {
+      return String(name ?? "").trim().replace(/\s+/g, " ");
+    }
+    function motionOk() {
+      return !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    }
+    function wait(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+    function shuffle(list) {
+      const a = list.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+    function lengthLabel(n) {
+      return n ? `Match bis ${n}` : "Matchlänge offen";
+    }
+    function rawName(t, id) {
+      return t.players.find((p) => p.id === id)?.name || "";
+    }
+    function player(t, id) {
+      return t.players.find((p) => p.id === id) || null;
+    }
+    function kindLabel(kind) {
+      if (kind === "gammon") return "Gammon";
+      if (kind === "backgammon") return "Backgammon";
+      return "";
+    }
+    function formatScore(match) {
+      if (!match?.score) return "";
+      const left = match.winner === match.p2 ? match.score.p2 : match.score.p1;
+      const right = match.winner === match.p2 ? match.score.p1 : match.score.p2;
+      return `${left} : ${right}`;
+    }
+    function dupKeys() {
+      const counts = new Map();
+      state.names.map(normalize).filter(Boolean).forEach((name) => {
+        const key = name.toLocaleLowerCase("de-DE");
+        counts.set(key, (counts.get(key) || 0) + 1);
+      });
+      return new Set([...counts].filter(([, count]) => count > 1).map(([key]) => key));
+    }
+    function setupStatus() {
+      const names = state.names.map(normalize).filter(Boolean);
+      if (names.length < 2) {
+        return { ok: false, label: "Mindestens 2 Spieler", hint: "Trag mindestens zwei Namen ein." };
+      }
+      const keys = names.map((name) => name.toLocaleLowerCase("de-DE"));
+      if (new Set(keys).size !== keys.length) {
+        return { ok: false, label: "Namen eindeutig machen", hint: "Jeder Name darf nur einmal vorkommen." };
+      }
+      return {
+        ok: true,
+        label: "Turnier starten",
+        hint: `${names.length} Spieler · ${lengthLabel(state.matchLength)}`
+      };
+    }
+    function clearToast() {
+      clearTimeout(toastTimer);
+      document.getElementById("toast").classList.remove("show");
+    }
+    function toast(message) {
+      const el = document.getElementById("toast");
+      el.textContent = message;
+      el.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove("show"), 2600);
+    }
+    function announce(message) {
+      document.getElementById("live").textContent = message;
+    }
+    function save() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          names: state.names,
+          matchLength: state.matchLength,
+          tournament: state.tournament,
+          showCeremony: state.showCeremony
+        }));
+      } catch (err) { /* private mode / full storage */ }
+    }
+    function load() {
+      try {
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+        if (!data || !Array.isArray(data.names)) return;
+        let names = data.names.map((name) => String(name ?? "").slice(0, 32));
+        if (!names.length) names = ["", "", "", "", ""];
+        while (names.length < 2) names.push("");
+        state.names = names.slice(0, 10);
+        state.matchLength = LENGTHS.includes(data.matchLength) ? data.matchLength : 5;
+        if (data.tournament?.rounds && data.tournament.players) state.tournament = data.tournament;
+        state.showCeremony = Boolean(data.showCeremony && BG.championOf(state.tournament));
+      } catch (err) { /* ignore broken storage */ }
+    }
+
+    function points(count, dir, slim) {
+      const cells = Array.from({ length: count }, (_, i) => `<span class="${i % 2 ? "mah" : "iv"}"></span>`).join("");
+      return `<div class="points ${dir}${slim ? " slim" : ""}" aria-hidden="true">${cells}</div>`;
+    }
+    function realNumber(round, matchIndex) {
+      let n = 0;
+      for (let i = 0; i <= matchIndex && i < round.matches.length; i++) {
+        if (!round.matches[i].isBye) n += 1;
+      }
+      return n;
+    }
+    function checker(color, size) {
+      return `<span class="checker ${color} ${size || ""}" aria-hidden="true"></span>`;
+    }
+    function logoSVG(prefix, sizeClass) {
+      return `<svg class="logo ${sizeClass || ""}" viewBox="0 0 220 88" role="img" aria-label="Zwei Spielsteine und ein Dopplerwürfel mit 64">
+        <defs>
+          <radialGradient id="${prefix}-iv" cx="35%" cy="32%" r="68%">
+            <stop offset="0%" stop-color="#fffdf8"/><stop offset="42%" stop-color="#f4ebd9"/>
+            <stop offset="78%" stop-color="#e4d3b0"/><stop offset="100%" stop-color="#a89068"/>
+          </radialGradient>
+          <radialGradient id="${prefix}-rd" cx="35%" cy="32%" r="68%">
+            <stop offset="0%" stop-color="#d46a5c"/><stop offset="46%" stop-color="#8b261d"/>
+            <stop offset="100%" stop-color="#2c0908"/>
+          </radialGradient>
+          <linearGradient id="${prefix}-gd" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#f8e7b0"/><stop offset="45%" stop-color="#d4af37"/>
+            <stop offset="100%" stop-color="#8c6a1e"/>
+          </linearGradient>
+        </defs>
+        <ellipse cx="70" cy="78" rx="58" ry="7" fill="#000" opacity="0.35"/>
+        <ellipse cx="86" cy="58" rx="28" ry="8" fill="#1a0605"/>
+        <circle cx="86" cy="50" r="26" fill="url(#${prefix}-rd)" stroke="#e6c56b" stroke-width="1.4"/>
+        <circle cx="86" cy="50" r="15.5" fill="none" stroke="#f0d48a" stroke-width="1.7" opacity="0.85"/>
+        <ellipse cx="76" cy="40" rx="10" ry="5.5" fill="#fff" opacity="0.16"/>
+        <ellipse cx="48" cy="50" rx="28" ry="8" fill="#3a2a18" opacity="0.55"/>
+        <circle cx="48" cy="40" r="26" fill="url(#${prefix}-iv)" stroke="#8d734c" stroke-width="1.4"/>
+        <circle cx="48" cy="40" r="15.5" fill="none" stroke="#fff6e4" stroke-width="1.8" opacity="0.9"/>
+        <ellipse cx="38" cy="30" rx="10" ry="5.5" fill="#fff" opacity="0.55"/>
+        <g transform="translate(138,14)">
+          <rect x="12" y="14" width="52" height="52" rx="7" fill="#5c3e12"/>
+          <rect x="2" y="4" width="52" height="52" rx="7" fill="url(#${prefix}-gd)" stroke="#fff6d4" stroke-width="1.5"/>
+          <rect x="9" y="11" width="38" height="38" rx="4" fill="none" stroke="#1a110b" stroke-opacity="0.28"/>
+          <text x="28" y="39" text-anchor="middle" font-family="Cinzel, Palatino, serif" font-size="20" font-weight="700" fill="#1a110b">64</text>
+        </g>
+      </svg>`;
+    }
+    function dieHTML(face) {
+      const on = new Set(DIE_PIPS[face] || []);
+      const pips = Array.from({ length: 9 }, (_, i) => `<i class="${on.has(i) ? "on" : ""}"></i>`).join("");
+      return `<span class="die" aria-hidden="true">${pips}</span>`;
+    }
+
+    function renderSetup() {
+      const status = setupStatus();
+      const dups = dupKeys();
+      const rows = state.busy ? renderPlates() : state.names.map((name, i) => {
+        const key = normalize(name).toLocaleLowerCase("de-DE");
+        const bad = key && dups.has(key);
+        const remove = state.names.length > 2
+          ? `<button type="button" class="remove-btn" data-action="remove" data-index="${i}" aria-label="Spieler ${i + 1} entfernen">×</button>`
+          : "";
+        return `<li>
+          <span class="seed-no">${i + 1}</span>
+          <label class="sr-only" for="player-${i}">Spieler ${i + 1}</label>
+          <input id="player-${i}" class="name-input ${bad ? "is-dup" : ""}" data-name-index="${i}"
+            value="${esc(name)}" maxlength="32" placeholder="${esc(EXAMPLES[i] || "Name")}"
+            autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="next"
+            aria-invalid="${bad ? "true" : "false"}">
+          ${remove}
+        </li>`;
+      }).join("");
+      const chips = LENGTHS.map((n) => {
+        const on = state.matchLength === n;
+        return `<button type="button" class="chip ${on ? "on" : ""}" role="radio" aria-checked="${on}" data-action="length" data-value="${n}">${n === 0 ? "Offen" : `bis ${n}`}</button>`;
+      }).join("");
+      const dice = state.busy
+        ? `<div class="dice-row">${dieHTML((state.drawTick % 6) + 1)}${dieHTML(((state.drawTick * 5 + 3) % 6) + 1)}</div>`
+        : "";
+      return `<div class="view-in">
+        ${points(13, "down")}
+        <div class="case-body">
+          <header class="pt-4 pb-2 text-center">
+            <div class="flex justify-center">${logoSVG("setup")}</div>
+            <p class="eyebrow mt-2">Einzel-Ausscheidung</p>
+            <h1 class="setup-title mt-1">Backgammon</h1>
+            <p class="font-display text-xl text-brass mt-1">K.o.-Turnier</p>
+            <p class="lede mt-3 text-sm">Namen eintragen, Reihenfolge auslosen, Sieger antippen.</p>
+          </header>
+          <section class="leather p-4 mt-2" aria-labelledby="roster-title">
+            <div class="flex items-baseline justify-between gap-3 mb-1">
+              <h2 id="roster-title" class="text-2xl m-0">Setzliste</h2>
+              <span class="text-sm text-brass">${state.names.length} / 10</span>
+            </div>
+            <p class="hint text-sm mt-0 mb-3">Platz 1 steht oben und erhält zuerst ein Freilos.</p>
+            ${dice}
+            <ol class="roster">${rows}</ol>
+            <button type="button" class="btn-ghost mt-3" data-action="add" ${state.names.length >= 10 || state.busy ? "disabled" : ""}>
+              ${state.names.length >= 10 ? "Maximum von 10 Spielern" : "+ Spieler hinzufügen"}
+            </button>
+            <button type="button" class="linkish" data-action="fill">Beispielnamen</button>
+            <h3 class="font-display text-lg mt-4 mb-2">Matchlänge</h3>
+            <div class="chips" role="radiogroup" aria-label="Matchlänge">${chips}</div>
+            <p class="hint text-sm mt-2 mb-0">Nur für die Punkteanzeige. Weiter kommt, wen du als Sieger antippst.</p>
+            <button type="button" class="btn-ghost mt-4" data-action="draw" ${state.busy ? "disabled" : ""}>
+              ${state.busy ? "Lose werden gezogen…" : "🎲 Zufällige Reihenfolge / Auslosen"}
+            </button>
+          </section>
+          <div class="action-dock">
+            <p id="setup-hint" class="hint text-sm text-center mt-0 mb-2">${esc(status.hint)}</p>
+            <button type="button" id="start-btn" class="btn-brass ${status.ok ? "" : "is-muted"}" data-action="start" data-ready="${status.ok ? "1" : "0"}" ${state.busy ? "disabled" : ""}>${esc(status.label)}</button>
+            <p class="hint text-xs text-center mt-2 mb-0">Bleibt in diesem Browser gespeichert.</p>
+          </div>
+        </div>
+      </div>`;
+    }
+    function renderPlates() {
+      return state.names.map((name, i) => {
+        const label = normalize(name);
+        const color = i % 2 ? "red" : "ivory";
+        return `<li class="plate">
+          <span class="seed-no">${i + 1}</span>
+          ${label ? checker(color, "sm") : ""}
+          <span class="who">${label ? esc(label) : "frei"}</span>
+        </li>`;
+      }).join("");
+    }
+
+    function renderBoard() {
+      const t = state.tournament;
+      const real = BG.realMatches(t);
+      const done = real.filter((m) => m.winner).length;
+      const open = real.filter(BG.isPlayable);
+      const champId = BG.championOf(t);
+      let barLabel = "Wartet auf das nächste Ergebnis";
+      let barAction = "jump-open";
+      if (champId) {
+        barLabel = `Champion ${rawName(t, champId)} · Siegerehrung`;
+        barAction = "show-ceremony";
+      } else if (open.length === 1) {
+        const round = t.rounds.find((r) => r.matches.some((m) => m.id === open[0].id));
+        barLabel = `${round ? round.name : "Jetzt"} · ${rawName(t, open[0].p1)} gegen ${rawName(t, open[0].p2)}`;
+      } else if (open.length > 1) {
+        barLabel = `Jetzt spielen · ${open.length} offene Spiele`;
+      }
+      const pct = real.length ? Math.round((done / real.length) * 100) : 0;
+      return `<div class="view-in">
+        ${points(13, "down")}
+        <div class="case-body">
+          <header class="pt-3">
+            <div class="lockup">
+              ${logoSVG("board", "sm")}
+              <div class="min-w-0">
+                <p class="eyebrow">K.o.-Tableau</p>
+                <h1>Backgammon</h1>
+              </div>
+            </div>
+            <div class="meta-row mt-3">
+              <p class="text-sm m-0">${t.players.length} Spieler · ${esc(lengthLabel(t.matchLength))}</p>
+              <button type="button" class="linkish" data-action="ask-reset">Neues Turnier</button>
+            </div>
+            <div class="bar mt-3" role="progressbar" aria-valuemin="0" aria-valuemax="${real.length}" aria-valuenow="${done}" aria-label="Entschiedene Spiele">
+              <span style="width:${pct}%"></span>
+            </div>
+            <p class="hint text-sm mt-2 mb-3">${done} von ${real.length} Spielen entschieden. Tippe auf den Sieger.</p>
+            <button type="button" class="open-bar" data-action="${barAction}">${esc(barLabel)}</button>
+          </header>
+          <main class="felt mt-4">
+            ${points(15, "down", true)}
+            <div class="felt-pad">
+              ${t.rounds.map((round, ri) => renderRound(t, round, ri)).join("")}
+            </div>
+            ${points(15, "up", true)}
+          </main>
+        </div>
+      </div>`;
+    }
+    function renderRound(t, round, ri) {
+      const entries = round.matches.map((m, mi) => ({ m, mi })).filter((entry) => !entry.m.isBye);
+      let number = 0;
+      const cards = entries.map(({ m, mi }) => {
+        number += 1;
+        if (m.winner) return renderDone(t, round, m, number);
+        if (BG.isPlayable(m)) return renderPlayable(t, round, m, number);
+        return renderWaiting(t, round, m, ri, mi, number);
+      }).join("");
+      return `<section class="round" aria-label="${esc(round.name)}">
+        <div class="round-head">
+          <h2>${esc(round.name)}</h2>
+          <span>${entries.length === 1 ? "1 Spiel" : `${entries.length} Spiele`}</span>
+        </div>
+        ${renderByes(t, round)}
+        ${cards || `<p class="hint">Keine offenen Paarungen in dieser Runde.</p>`}
+      </section>`;
+    }
+    function renderByes(t, round) {
+      const ids = round.matches.filter((m) => m.isBye && m.winner).map((m) => m.winner);
+      if (!ids.length) return "";
+      const players = ids.map((id, i) => `<span class="bye-player">${checker(i % 2 ? "red" : "ivory", "sm")}<span>${esc(rawName(t, id))}</span></span>`).join("");
+      return `<p class="bye-line"><span class="bye-label">Freilos</span>${players}</p>`;
+    }
+    function renderPlayable(t, round, match, number) {
+      return `<article class="match is-playable" id="match-${match.id}">
+        <div class="match-kicker"><span>${esc(round.name)} · Spiel ${number}</span><span class="flag">Jetzt</span></div>
+        ${slotButton(t, match, "p1")}
+        <div class="vs" aria-hidden="true"><span>vs</span></div>
+        ${slotButton(t, match, "p2")}
+      </article>`;
+    }
+    function slotButton(t, match, slot) {
+      const id = match[slot];
+      const seed = player(t, id)?.seed;
+      return `<button type="button" class="slot" data-action="pick" data-match="${match.id}" data-player="${id}">
+        ${checker(slot === "p1" ? "ivory" : "red")}
+        <span class="pname">${esc(rawName(t, id))}</span>
+        <span class="seed">#${seed || ""}</span>
+      </button>`;
+    }
+    function renderWaiting(t, round, match, ri, mi, number) {
+      return `<article class="match is-wait" id="match-${match.id}">
+        <div class="match-kicker"><span>${esc(round.name)} · Spiel ${number}</span><span>wartet</span></div>
+        ${match.p1 ? slotStatic(t, match, "p1") : slotWait(t, ri, mi, "p1")}
+        <div class="vs" aria-hidden="true"><span>vs</span></div>
+        ${match.p2 ? slotStatic(t, match, "p2") : slotWait(t, ri, mi, "p2")}
+      </article>`;
+    }
+    function slotStatic(t, match, slot) {
+      const id = match[slot];
+      return `<div class="slot">
+        ${checker(slot === "p1" ? "ivory" : "red")}
+        <span class="pname">${esc(rawName(t, id))}</span>
+        <span class="seed">#${player(t, id)?.seed || ""}</span>
+      </div>`;
+    }
+    function slotWait(t, ri, mi, slot) {
+      const feederIndex = mi * 2 + (slot === "p1" ? 0 : 1);
+      const prev = t.rounds[ri - 1];
+      const label = prev ? `${prev.name} · Spiel ${realNumber(prev, feederIndex)}` : "offenes Spiel";
+      return `<div class="slot wait">
+        ${checker("ghost")}
+        <span><span class="wait-kicker">Wartet auf</span><span class="pname">${esc(label)}</span></span>
+      </div>`;
+    }
+    function renderDone(t, round, match, number) {
+      const loser = match.p1 === match.winner ? match.p2 : match.p1;
+      const score = formatScore(match);
+      const kind = kindLabel(match.kind);
+      return `<article class="done" id="match-${match.id}">
+        <div class="done-main">
+          ${checker("ivory", "sm")}
+          <div class="done-copy">
+            <p class="done-kicker">${esc(round.name)} · Spiel ${number}</p>
+            <p class="done-line"><strong>${esc(rawName(t, match.winner))}</strong> <span>schlägt ${esc(rawName(t, loser))}</span></p>
+          </div>
+        </div>
+        <div class="done-meta">
+          ${score ? `<span class="score">${esc(score)}</span>` : ""}
+          ${kind ? `<span class="tag">${kind}</span>` : ""}
+          <button type="button" class="linkish" data-action="edit" data-match="${match.id}">Ändern</button>
+        </div>
+      </article>`;
+    }
+
+    function renderCeremony() {
+      const t = state.tournament;
+      const id = BG.championOf(t);
+      const path = BG.winPath(t, id);
+      const fin = t.rounds[t.rounds.length - 1].matches[0];
+      const score = formatScore(fin);
+      const kind = kindLabel(fin.kind);
+      const pathText = path.length ? `Sieg gegen ${path.join(" · ")}` : "Ohne Niederlage durch das Tableau";
+      const finalBit = [score ? `Finale ${score}` : "", kind].filter(Boolean).join(" · ");
+      return `<div class="view-in ceremony" id="ceremony">
+        ${points(13, "down")}
+        <div class="case-body pt-4">
+          <p class="eyebrow">Turniersieger</p>
+          <div class="stack" aria-hidden="true">
+            ${checker("red", "xl back")}
+            ${checker("ivory", "xl front")}
+          </div>
+          <h1 class="champ-name">${esc(rawName(t, id))}</h1>
+          <p class="path">${esc(pathText)}</p>
+          ${finalBit ? `<p class="text-brass font-semibold mt-2">${esc(finalBit)}</p>` : ""}
+          <button type="button" class="cube" data-action="celebrate" aria-label="Noch einmal feiern"><span>64</span></button>
+          <p class="hint text-sm">Der Dopplerwürfel steht auf 64. Der Koffer bleibt hier.</p>
+          <button type="button" class="btn-brass mt-4" data-action="close-ceremony">Tableau ansehen</button>
+          <button type="button" class="btn-ghost mt-3" data-action="ask-reset">Neues Turnier</button>
+        </div>
+        ${points(13, "up")}
+      </div>`;
+    }
+
+    function renderSheet() {
+      const sheet = state.sheet;
+      if (!sheet) return "";
+      const body = sheet.type === "win" ? renderWinSheet() : sheet.type === "retract" ? renderRetractSheet() : renderResetSheet();
+      return `<div class="overlay">
+        <button type="button" class="backdrop" data-action="close-sheet" aria-label="Schließen"></button>
+        <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+          <div class="grabber" aria-hidden="true"></div>
+          ${body}
+        </div>
+      </div>`;
+    }
+    function renderWinSheet() {
+      const t = state.tournament;
+      const sheet = state.sheet;
+      const match = BG.findMatch(t, sheet.matchId);
+      if (!match) return "";
+      const opts = [
+        ["", "Partie"],
+        ["gammon", "Gammon"],
+        ["backgammon", "Backgammon"]
+      ];
+      const kinds = opts.map(([value, label]) => {
+        const on = (sheet.kind || "") === value;
+        return `<button type="button" class="chip ${on ? "on" : ""}" role="radio" aria-checked="${on}" data-action="kind" data-kind="${value}">${label}</button>`;
+      }).join("");
+      const picks = ["p1", "p2"].map((slot) => {
+        const id = match[slot];
+        const on = sheet.winnerId === id;
+        return `<button type="button" class="pick ${on ? "on" : ""}" data-action="choose" data-player="${id}" aria-pressed="${on}">
+          ${checker(slot === "p1" ? "ivory" : "red")}
+          <span class="pname">${esc(rawName(t, id))}</span>
+          <span class="seed">${on ? "Sieger" : "wählen"}</span>
+        </button>`;
+      }).join("");
+      const scoreBlock = sheet.useScore ? `<div class="score-grid mt-3">
+          ${scoreSide(t, match, "p1")}${scoreSide(t, match, "p2")}
+        </div>
+        <button type="button" class="linkish" data-action="toggle-score">Punkte weglassen</button>
+        <p class="sheet-hint">${esc(scoreHint(t, match))}</p>` : `<button type="button" class="linkish" data-action="toggle-score">Punkte eintragen</button>`;
+      const wipe = sheet.hadWinner ? `<button type="button" class="linkish danger" data-action="ask-delete">Ergebnis löschen</button>` : "";
+      return `<h2 id="sheet-title" class="text-2xl text-center m-0">Sieg eintragen</h2>
+        <p class="hint text-sm text-center mt-1">Oben Elfenbein, unten Mahagoni — wie am Brett.</p>
+        <div class="grid gap-2 mt-3">${picks}</div>
+        <div class="chips mt-4" role="radiogroup" aria-label="Art des Siegs">${kinds}</div>
+        ${scoreBlock}
+        <button type="button" class="btn-brass mt-2" data-action="confirm" data-autofocus>Sieg für ${esc(rawName(t, sheet.winnerId))} bestätigen</button>
+        ${wipe}
+        <button type="button" class="btn-ghost mt-2" data-action="close-sheet">Abbrechen</button>`;
+    }
+    function scoreSide(t, match, slot) {
+      const sheet = state.sheet;
+      const key = slot === "p1" ? "p1Score" : "p2Score";
+      const value = sheet[key];
+      const lead = sheet.winnerId === match[slot];
+      return `<div class="score-side ${lead ? "lead" : ""}">
+        <p>${esc(rawName(t, match[slot]))}</p>
+        <div class="stepper">
+          <button type="button" data-action="score" data-side="${slot}" data-dir="-1" ${value <= 0 ? "disabled" : ""} aria-label="Punkt weniger">−</button>
+          <strong>${value}</strong>
+          <button type="button" data-action="score" data-side="${slot}" data-dir="1" ${value >= 31 ? "disabled" : ""} aria-label="Punkt mehr">+</button>
+        </div>
+      </div>`;
+    }
+    function scoreHint(t, match) {
+      const sheet = state.sheet;
+      if (!sheet.useScore) return "";
+      const wScore = sheet.winnerId === match.p1 ? sheet.p1Score : sheet.p2Score;
+      const lScore = sheet.winnerId === match.p1 ? sheet.p2Score : sheet.p1Score;
+      if (wScore < lScore) return "Der eingetragene Sieger hat weniger Punkte.";
+      if (t.matchLength && wScore < t.matchLength) return `Dieses Match geht bis ${t.matchLength}. Trotzdem eintragen ist möglich.`;
+      return "";
+    }
+    function renderRetractSheet() {
+      const t = state.tournament;
+      const match = BG.findMatch(t, state.sheet.matchId);
+      const line = match?.winner
+        ? `${rawName(t, match.p1)} gegen ${rawName(t, match.p2)} wird wieder geöffnet.`
+        : "Dieses Spiel wird wieder geöffnet.";
+      return `<h2 id="sheet-title" class="text-2xl m-0">Ergebnis löschen?</h2>
+        <p class="lede mt-2">${esc(line)} Folgespiele, die davon abhängen, werden zurückgesetzt.</p>
+        <button type="button" class="btn-danger mt-4" data-action="retract" data-autofocus>Ergebnis löschen</button>
+        <button type="button" class="btn-ghost mt-2" data-action="close-sheet">Abbrechen</button>`;
+    }
+    function renderResetSheet() {
+      return `<h2 id="sheet-title" class="text-2xl m-0">Neues Turnier?</h2>
+        <p class="lede mt-2">Das Tableau wird gelöscht. Die Namen bleiben in der Setzliste stehen.</p>
+        <button type="button" class="btn-danger mt-4" data-action="reset" data-autofocus>Neu aufsetzen</button>
+        <button type="button" class="btn-ghost mt-2" data-action="close-sheet">Abbrechen</button>`;
+    }
+
+    function view() {
+      const champ = state.tournament && BG.championOf(state.tournament);
+      let inner;
+      if (state.tournament && state.showCeremony && champ) inner = renderCeremony();
+      else if (state.tournament) inner = renderBoard();
+      else inner = renderSetup();
+      return `<div class="case">${inner}</div>${renderSheet()}`;
+    }
+    function render(opts = {}) {
+      const y = window.scrollY;
+      const active = document.activeElement;
+      const keepScore = active?.dataset?.action === "score"
+        ? { side: active.dataset.side, dir: active.dataset.dir }
+        : null;
+      document.getElementById("app").innerHTML = view();
+      document.body.classList.toggle("sheet-open", Boolean(state.sheet));
+      if (opts.scrollTop) window.scrollTo(0, 0);
+      else if (opts.scrollTo) {
+        document.getElementById(opts.scrollTo)?.scrollIntoView({
+          behavior: motionOk() ? "smooth" : "auto",
+          block: "center"
+        });
+      } else window.scrollTo(0, y);
+      if (focusSheet) {
+        focusSheet = false;
+        document.querySelector(".sheet [data-autofocus]")?.focus();
+      } else if (keepScore) {
+        document.querySelector(`.sheet [data-action="score"][data-side="${keepScore.side}"][data-dir="${keepScore.dir}"]`)?.focus();
+      }
+    }
+
+    function openWin(matchId, winnerId) {
+      const match = BG.findMatch(state.tournament, matchId);
+      if (!match || match.isBye || !match.p1 || !match.p2) return;
+      const winner = winnerId || match.winner;
+      const len = state.tournament.matchLength;
+      let p1Score = 0;
+      let p2Score = 0;
+      let useScore = len > 0;
+      if (match.score) {
+        p1Score = match.score.p1;
+        p2Score = match.score.p2;
+        useScore = true;
+      } else if (useScore) {
+        p1Score = winner === match.p1 ? len : 0;
+        p2Score = winner === match.p2 ? len : 0;
+      }
+      state.sheet = {
+        type: "win",
+        matchId,
+        winnerId: winner,
+        p1Score,
+        p2Score,
+        useScore,
+        kind: match.kind || null,
+        hadWinner: Boolean(match.winner)
+      };
+      focusSheet = true;
+      render();
+    }
+    function nextScrollTarget(matchId) {
+      const t = state.tournament;
+      const loc = BG.locate(t, matchId);
+      if (loc && loc.ri < t.rounds.length - 1) {
+        const next = t.rounds[loc.ri + 1].matches[Math.floor(loc.mi / 2)];
+        if (BG.isPlayable(next)) return next;
+      }
+      const all = BG.realMatches(t);
+      const idx = all.findIndex((m) => m.id === matchId);
+      for (let i = idx + 1; i < all.length; i++) if (BG.isPlayable(all[i])) return all[i];
+      for (let i = 0; i < idx; i++) if (BG.isPlayable(all[i])) return all[i];
+      return null;
+    }
+    function confirmWin() {
+      const sheet = state.sheet;
+      const t = state.tournament;
+      const before = BG.championOf(t);
+      const score = sheet.useScore ? { p1: sheet.p1Score, p2: sheet.p2Score } : null;
+      const ok = BG.setWinner(t, sheet.matchId, sheet.winnerId, score, sheet.kind);
+      if (!ok) {
+        toast("Dieses Spiel kann noch nicht eingetragen werden.");
+        return;
+      }
+      const champ = BG.championOf(t);
+      const crowned = Boolean(champ && champ !== before);
+      const matchId = sheet.matchId;
+      state.sheet = null;
+      if (crowned) {
+        state.showCeremony = true;
+        clearToast();
+      }
+      save();
+      const next = crowned ? null : nextScrollTarget(matchId);
+      render(crowned ? { scrollTop: true } : { scrollTo: next ? `match-${next.id}` : null });
+      if (crowned) {
+        celebrate();
+        announce(`${rawName(t, champ)} ist Champion.`);
+      } else {
+        announce(`${rawName(t, sheet.winnerId)} zieht eine Runde weiter.`);
+        if (navigator.vibrate) navigator.vibrate(12);
+      }
+    }
+    function celebrate() {
+      if (!motionOk() || typeof confetti !== "function") return;
+      const colors = ["#d4af37", "#f4ebd9", "#8b261d", "#f3e2a4", "#fffaf0"];
+      const burst = (opts) => confetti(Object.assign({ colors, disableForReducedMotion: true, scalar: 1.05 }, opts));
+      burst({ particleCount: 150, spread: 78, origin: { y: 0.62 } });
+      setTimeout(() => burst({ particleCount: 70, angle: 60, spread: 55, origin: { x: 0, y: 0.7 } }), 220);
+      setTimeout(() => burst({ particleCount: 70, angle: 120, spread: 55, origin: { x: 1, y: 0.7 } }), 380);
+    }
+    async function drawLots() {
+      const filled = state.names.map(normalize).filter(Boolean);
+      if (filled.length < 2) {
+        toast("Trag mindestens zwei Namen ein.");
+        return;
+      }
+      if (state.busy) return;
+      const empties = state.names.length - filled.length;
+      const apply = (list) => { state.names = list.concat(Array(empties).fill("")); };
+      if (!motionOk()) {
+        apply(shuffle(filled));
+        save();
+        render();
+        toast("Reihenfolge ausgelost. Platz 1 steht oben.");
+        return;
+      }
+      state.busy = true;
+      try {
+        let order = filled.slice();
+        for (let step = 0; step < 12; step++) {
+          order = shuffle(order);
+          apply(order);
+          state.drawTick = step;
+          render();
+          await wait(55 + step * 16);
+        }
+      } finally {
+        state.busy = false;
+        save();
+        render();
+      }
+      toast("Reihenfolge ausgelost. Platz 1 steht oben.");
+      announce(`Neue Setzliste: ${state.names.map(normalize).filter(Boolean).join(", ")}`);
+    }
+    function startTournament() {
+      const status = setupStatus();
+      if (!status.ok) {
+        toast(status.hint);
+        return;
+      }
+      const names = state.names.map(normalize).filter(Boolean);
+      clearToast();
+      state.names = names;
+      state.tournament = BG.buildTournament(names, state.matchLength);
+      state.showCeremony = false;
+      state.sheet = null;
+      state.jumpCursor = 0;
+      save();
+      render({ scrollTop: true });
+      announce(`Turnier gestartet. ${names.length} Spieler.`);
+    }
+    function refreshSetupChrome() {
+      const status = setupStatus();
+      const btn = document.getElementById("start-btn");
+      const hint = document.getElementById("setup-hint");
+      if (btn) {
+        btn.textContent = status.label;
+        btn.classList.toggle("is-muted", !status.ok);
+        btn.dataset.ready = status.ok ? "1" : "0";
+      }
+      if (hint) hint.textContent = status.hint;
+      const dups = dupKeys();
+      document.querySelectorAll("[data-name-index]").forEach((input) => {
+        const key = normalize(input.value).toLocaleLowerCase("de-DE");
+        const bad = Boolean(key && dups.has(key));
+        input.classList.toggle("is-dup", bad);
+        input.setAttribute("aria-invalid", bad ? "true" : "false");
+      });
+    }
+
+    function onClick(event) {
+      const btn = event.target.closest("[data-action]");
+      if (!btn || btn.disabled || state.busy) return;
+      const action = btn.dataset.action;
+      if (action === "add") {
+        if (state.names.length >= 10) return;
+        state.names.push("");
+        save();
+        render();
+        document.getElementById(`player-${state.names.length - 1}`)?.focus();
+        return;
+      }
+      if (action === "remove") {
+        if (state.names.length <= 2) return;
+        state.names.splice(Number(btn.dataset.index), 1);
+        save();
+        render();
+        return;
+      }
+      if (action === "fill") {
+        state.names = EXAMPLES.slice(0, state.names.length);
+        save();
+        render();
+        toast("Beispielnamen eingesetzt. Du kannst sie überschreiben.");
+        return;
+      }
+      if (action === "length") {
+        state.matchLength = Number(btn.dataset.value);
+        save();
+        render();
+        return;
+      }
+      if (action === "draw") { drawLots(); return; }
+      if (action === "start") { startTournament(); return; }
+      if (action === "pick") { openWin(btn.dataset.match, btn.dataset.player); return; }
+      if (action === "edit") { openWin(btn.dataset.match); return; }
+      if (action === "choose") {
+        const sheet = state.sheet;
+        const match = BG.findMatch(state.tournament, sheet.matchId);
+        if (!match || sheet.winnerId === btn.dataset.player) return;
+        sheet.winnerId = btn.dataset.player;
+        if (sheet.useScore) {
+          const len = state.tournament.matchLength || 0;
+          sheet.p1Score = sheet.winnerId === match.p1 ? len : 0;
+          sheet.p2Score = sheet.winnerId === match.p2 ? len : 0;
+        }
+        render();
+        return;
+      }
+      if (action === "kind") {
+        state.sheet.kind = btn.dataset.kind || null;
+        render();
+        return;
+      }
+      if (action === "score") {
+        const key = btn.dataset.side === "p1" ? "p1Score" : "p2Score";
+        const next = Math.max(0, Math.min(31, state.sheet[key] + Number(btn.dataset.dir)));
+        state.sheet[key] = next;
+        state.sheet.useScore = true;
+        render();
+        return;
+      }
+      if (action === "toggle-score") {
+        const sheet = state.sheet;
+        sheet.useScore = !sheet.useScore;
+        if (sheet.useScore) {
+          const match = BG.findMatch(state.tournament, sheet.matchId);
+          const len = state.tournament.matchLength || 0;
+          sheet.p1Score = sheet.winnerId === match.p1 ? len : 0;
+          sheet.p2Score = sheet.winnerId === match.p2 ? len : 0;
+        }
+        render();
+        return;
+      }
+      if (action === "confirm") { confirmWin(); return; }
+      if (action === "ask-delete") {
+        state.sheet = { type: "retract", matchId: state.sheet.matchId };
+        focusSheet = true;
+        render();
+        return;
+      }
+      if (action === "retract") {
+        const match = BG.findMatch(state.tournament, state.sheet.matchId);
+        if (match) BG.retract(state.tournament, match);
+        state.showCeremony = false;
+        state.sheet = null;
+        save();
+        render({ scrollTo: match ? `match-${match.id}` : null });
+        announce("Ergebnis zurückgenommen.");
+        return;
+      }
+      if (action === "close-sheet") {
+        state.sheet = null;
+        render();
+        return;
+      }
+      if (action === "ask-reset") {
+        state.sheet = { type: "reset" };
+        focusSheet = true;
+        render();
+        return;
+      }
+      if (action === "reset") {
+        state.tournament = null;
+        state.showCeremony = false;
+        state.sheet = null;
+        save();
+        render({ scrollTop: true });
+        announce("Neues Turnier. Die Namen sind noch da.");
+        return;
+      }
+      if (action === "show-ceremony") {
+        state.showCeremony = true;
+        save();
+        render({ scrollTop: true });
+        celebrate();
+        return;
+      }
+      if (action === "close-ceremony") {
+        state.showCeremony = false;
+        save();
+        render({ scrollTop: true });
+        return;
+      }
+      if (action === "celebrate") { celebrate(); return; }
+      if (action === "jump-open") {
+        const open = BG.realMatches(state.tournament).filter(BG.isPlayable);
+        if (!open.length) return;
+        const match = open[state.jumpCursor % open.length];
+        state.jumpCursor += 1;
+        document.getElementById(`match-${match.id}`)?.scrollIntoView({
+          behavior: motionOk() ? "smooth" : "auto",
+          block: "center"
+        });
+      }
+    }
+    function onInput(event) {
+      const input = event.target.closest("[data-name-index]");
+      if (!input || state.tournament) return;
+      state.names[Number(input.dataset.nameIndex)] = input.value;
+      save();
+      refreshSetupChrome();
+    }
+    function onKeydown(event) {
+      if (event.key === "Escape" && state.sheet && !state.busy) {
+        state.sheet = null;
+        render();
+        return;
+      }
+      if (event.key === "Tab" && state.sheet) {
+        const root = document.querySelector(".sheet");
+        if (!root) return;
+        const items = [...root.querySelectorAll("button, input, [href], [tabindex]:not([tabindex='-1'])")].filter((el) => !el.disabled);
+        if (!items.length) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+        return;
+      }
+      if (event.key !== "Enter") return;
+      const input = event.target.closest("[data-name-index]");
+      if (!input || state.busy) return;
+      event.preventDefault();
+      const next = document.getElementById(`player-${Number(input.dataset.nameIndex) + 1}`);
+      if (next) next.focus();
+      else startTournament();
+    }
+
+    document.getElementById("app").addEventListener("click", onClick);
+    document.getElementById("app").addEventListener("input", onInput);
+    document.addEventListener("keydown", onKeydown);
+    load();
+    render();
+    if (state.showCeremony) celebrate();
+  </script>
+</body>
+</html>
